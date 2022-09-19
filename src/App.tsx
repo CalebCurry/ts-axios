@@ -31,8 +31,6 @@ function App() {
     const [cryptos, setCryptos] = useState<Crypto[] | null>(null);
     const [selected, setSelected] = useState<Crypto[]>([]);
 
-    const [range, setRange] = useState<number>(30);
-
     /*
     const [data, setData] = useState<ChartData<'line'>>();
     const [options, setOptions] = useState<ChartOptions<'line'>>({
@@ -108,6 +106,19 @@ function App() {
     }, [selected, range]);
     */
 
+    useEffect(() => {
+        console.log('SELECTED:', selected);
+    }, [selected]);
+
+    function updateOwned(crypto: Crypto, amount: number): void {
+        console.log('updatwOwned', crypto, amount);
+        let temp = [...selected];
+        let tempObj = temp.find((c) => c.id === crypto.id);
+        if (tempObj) {
+            tempObj.owned = amount;
+            setSelected(temp);
+        }
+    }
     return (
         <>
             <div className="App">
@@ -134,7 +145,7 @@ function App() {
             </div>
 
             {selected.map((s) => {
-                return <CryptoSummary crypto={s} />;
+                return <CryptoSummary crypto={s} updateOwned={updateOwned} />;
             })}
 
             {/*selected ? <CryptoSummary crypto={selected} /> : null*/}
@@ -144,6 +155,25 @@ function App() {
                     <Line options={options} data={data} />
                 </div>
             ) : null*/}
+            {selected
+                ? 'Your portfolio is worth: $' +
+                  selected
+                      .map((s) => {
+                          if (isNaN(s.owned)) {
+                              return 0;
+                          }
+
+                          return s.current_price * s.owned;
+                      })
+                      .reduce((prev, current) => {
+                          console.log('prev, current', prev, current);
+                          return prev + current;
+                      }, 0)
+                      .toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                      })
+                : null}
         </>
     );
 }
